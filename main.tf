@@ -18,7 +18,7 @@ data "aws_iam_policy_document" "key_policy" {
     sid = "Allow access for key administrators"
 
     principals {
-      identifiers = ["${var.principals}"]
+      identifiers = ["${compact(var.principals)}"]
       type        = "AWS"
     }
 
