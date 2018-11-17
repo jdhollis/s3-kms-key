@@ -68,8 +68,31 @@ data "aws_iam_policy_document" "key_policy" {
 
     condition {
       test     = "StringEquals"
-      values   = ["${data.aws_caller_identity.current.account_id}"]
+      values   = ["${concat(list(data.aws_caller_identity.current.account_id), var.additional_account_ids)}"]
       variable = "kms:CallerAccount"
+    }
+  }
+
+  statement {
+    sid = "Allow attachment of persistent resources"
+
+    principals {
+      identifiers = ["${formatlist("arn:aws:iam::%s:root", concat(list(data.aws_caller_identity.current.account_id), var.additional_account_ids))}"]
+      type        = "AWS"
+    }
+
+    actions = [
+      "kms:CreateGrant",
+      "kms:ListGrants",
+      "kms:RevokeGrant",
+    ]
+
+    resources = ["*"]
+
+    condition {
+      test     = "Bool"
+      values   = ["true"]
+      variable = "kms:GrantIsForAWSResource"
     }
   }
 }

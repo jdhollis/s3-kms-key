@@ -1,3 +1,8 @@
+variable "additional_account_ids" {
+  type    = "list"
+  default = []
+}
+
 variable "alias_name" {}
 
 variable "principals" {
