@@ -1,5 +1,8 @@
-data "aws_caller_identity" "current" {}
-data "aws_region" "current" {}
+data "aws_caller_identity" "current" {
+}
+
+data "aws_region" "current" {
+}
 
 data "aws_iam_policy_document" "key_policy" {
   statement {
@@ -18,7 +21,7 @@ data "aws_iam_policy_document" "key_policy" {
     sid = "Allow access for key administrators"
 
     principals {
-      identifiers = ["${compact(var.principals)}"]
+      identifiers = compact(var.principals)
       type        = "AWS"
     }
 
@@ -67,8 +70,13 @@ data "aws_iam_policy_document" "key_policy" {
     }
 
     condition {
-      test     = "StringEquals"
-      values   = ["${concat(list(data.aws_caller_identity.current.account_id), var.additional_account_ids)}"]
+      test = "StringEquals"
+
+      values = concat(
+        [data.aws_caller_identity.current.account_id],
+        var.additional_account_ids
+      )
+
       variable = "kms:CallerAccount"
     }
   }
@@ -77,8 +85,14 @@ data "aws_iam_policy_document" "key_policy" {
     sid = "Allow attachment of persistent resources"
 
     principals {
-      identifiers = ["${formatlist("arn:aws:iam::%s:root", concat(list(data.aws_caller_identity.current.account_id), var.additional_account_ids))}"]
-      type        = "AWS"
+      identifiers = formatlist(
+        "arn:aws:iam::%s:root",
+        concat(
+          [data.aws_caller_identity.current.account_id],
+          var.additional_account_ids
+        )
+      )
+      type = "AWS"
     }
 
     actions = [
@@ -99,10 +113,11 @@ data "aws_iam_policy_document" "key_policy" {
 
 resource "aws_kms_key" "key" {
   enable_key_rotation = true
-  policy              = "${data.aws_iam_policy_document.key_policy.json}"
+  policy              = data.aws_iam_policy_document.key_policy.json
 }
 
 resource "aws_kms_alias" "alias" {
   name          = "alias/${var.alias_name}"
-  target_key_id = "${aws_kms_key.key.key_id}"
+  target_key_id = aws_kms_key.key.key_id
 }
+
