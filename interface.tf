@@ -3,8 +3,7 @@ variable "additional_account_ids" {
   default = []
 }
 
-variable "alias_name" {
-}
+variable "alias_name" {}
 
 variable "principals" {
   type = list(string)
@@ -17,4 +16,3 @@ output "arn" {
 output "id" {
   value = aws_kms_key.key.key_id
 }
-
